@@ -1,0 +1,19 @@
+{
+  "name": "bim-analyzer",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "web-ifc": "0.0.57",
+    "three": "^0.160.0",
+    "jspdf": "^2.5.1"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
