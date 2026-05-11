@@ -5,8 +5,14 @@ let api = null
 export async function initIfcAPI() {
   if (api) return api
   api = new IfcAPI()
-  api.SetWasmPath('/')
-  await api.Init()
+
+  // Force single-threaded WASM by intercepting the locate file handler.
+  // This prevents web-ifc from spawning MT workers which fail in some environments.
+  await api.Init((path) => {
+    if (path.endsWith('.wasm')) return '/web-ifc.wasm'
+    return '/' + path
+  })
+
   return api
 }
 
