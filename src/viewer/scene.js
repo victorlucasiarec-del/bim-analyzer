@@ -25,9 +25,6 @@ export function createScene() {
   fill.position.set(-20, -30, -20)
   scene.add(fill)
 
-  const grid = new THREE.GridHelper(200, 50, 0xDDDAD4, 0xECEAE5)
-  scene.add(grid)
-
   return scene
 }
 

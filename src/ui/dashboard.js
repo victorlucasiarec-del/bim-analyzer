@@ -156,36 +156,51 @@ export function renderViewerOverlay(total, ifcVersion) {
   }
 }
 
-export function renderSelectionInfo(api, modelID, expressID, ifcType) {
+// expressIDs: number[]  |  meshMeta: [{expressID, ifcType, mesh}]
+export function renderSelectionInfo(api, modelID, expressIDs, meshMeta) {
   const panel = document.getElementById('selection-panel')
   if (!panel) return
 
-  if (!expressID) {
+  if (!expressIDs || expressIDs.length === 0) {
     panel.style.display = 'none'
     return
   }
 
-  let typeName = ifcType ? String(ifcType) : 'Desconhecido'
-  let globalId = '—'
-  let storey = '—'
+  // ── Múltiplos elementos ──────────────────────────────────────────
+  if (expressIDs.length > 1) {
+    const preview = expressIDs.slice(0, 3).map(id => `#${id}`).join(', ')
+    const more    = expressIDs.length > 3 ? ` +${expressIDs.length - 3}` : ''
+    panel.style.display = 'block'
+    panel.innerHTML = `
+      <div class="sel-title">${expressIDs.length} Elementos Selecionados</div>
+      <div class="sel-row">
+        <span class="sel-key">Express IDs</span>
+        <span class="sel-val" title="${expressIDs.map(id => '#' + id).join(', ')}">${preview}${more}</span>
+      </div>
+      <div class="sel-hint">Shift+clique para adicionar · Clique para novo</div>
+    `
+    return
+  }
 
+  // ── Elemento único ───────────────────────────────────────────────
+  const expressID = expressIDs[0]
+  const meta      = meshMeta?.find(m => m.expressID === expressID)
+  const ifcType   = meta?.ifcType
+
+  let globalId = '—'
   try {
     const entity = api.GetLine(modelID, expressID, true)
-    if (entity) {
-      globalId = entity.GlobalId?.value || '—'
-      typeName = entity.constructor?.name || typeName
-    }
+    if (entity) globalId = entity.GlobalId?.value || '—'
   } catch {}
 
-  // extract IFC type name from numeric constant
-  const typeNames = {
-    626085974: 'IfcColumn', 2906023776: 'IfcBeam', 3171933400: 'IfcSlab',
-    2391406946: 'IfcWall', 3304561284: 'IfcWallStandardCase',
-    3071080877: 'IfcWindow', 395920057: 'IfcDoor',
-    1509553395: 'IfcFurnishingElement', 331165859: 'IfcStair',
-    2547093498: 'IfcRoof', 900683007: 'IfcFooting', 1938806468: 'IfcPile',
-  }
-  const displayType = typeNames[ifcType] || `IFC #${ifcType}`
+  // type name: try constructor name, then numeric lookup, then raw
+  let displayType = `IFC #${ifcType}`
+  try {
+    const entity = api.GetLine(modelID, expressID, true)
+    if (entity?.constructor?.name && entity.constructor.name !== 'Object') {
+      displayType = entity.constructor.name
+    }
+  } catch {}
 
   panel.style.display = 'block'
   panel.innerHTML = `
@@ -196,11 +211,12 @@ export function renderSelectionInfo(api, modelID, expressID, ifcType) {
     </div>
     <div class="sel-row">
       <span class="sel-key">GlobalId</span>
-      <span class="sel-val" title="${globalId}">${globalId.substring(0, 18)}…</span>
+      <span class="sel-val" title="${globalId}">${globalId.length > 20 ? globalId.substring(0, 18) + '…' : globalId}</span>
     </div>
     <div class="sel-row">
       <span class="sel-key">Express ID</span>
       <span class="sel-val">#${expressID}</span>
     </div>
+    <div class="sel-hint">Shift+clique para adicionar</div>
   `
 }

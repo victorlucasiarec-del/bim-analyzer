@@ -122,18 +122,19 @@ export async function buildGeometry(api, modelID) {
   return { meshGroup, meshMeta }
 }
 
-export function selectMesh(mesh, meshMeta, selectedMaterial) {
-  // restore previous selection
+// selectedIDs: Set<expressID>
+export function applySelection(selectedIDs, meshMeta) {
   for (const m of meshMeta) {
-    if (m.mesh.userData.selected) {
+    const shouldSelect = selectedIDs.has(m.expressID)
+    if (shouldSelect === m.mesh.userData.selected) continue
+    if (shouldSelect) {
+      m.mesh.material = new THREE.MeshLambertMaterial({ color: 0x1A7A4A })
+      m.mesh.userData.selected = true
+    } else {
       m.mesh.material = getMaterial(m.mesh.userData.ifcType)
       m.mesh.userData.selected = false
     }
   }
-  if (!mesh) return
-
-  mesh.material = new THREE.MeshLambertMaterial({ color: 0x1A7A4A })
-  mesh.userData.selected = true
 }
 
 export function centerModel(meshGroup) {

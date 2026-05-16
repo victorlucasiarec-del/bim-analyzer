@@ -3,7 +3,7 @@ import { loadIfcFile, closeModel } from './ifc/loader.js'
 import { parseMetadata, countElements, detectIfcVersion } from './ifc/parser.js'
 import { extractQuantities } from './ifc/quantities.js'
 import { createScene, createCamera, createRenderer, handleResize } from './viewer/scene.js'
-import { buildGeometry, selectMesh, centerModel } from './viewer/geometry.js'
+import { buildGeometry, applySelection, centerModel } from './viewer/geometry.js'
 import { createOrbitControls, setupRaycasting } from './viewer/controls.js'
 import { renderDashboard, renderBottomStats, renderViewerOverlay, renderSelectionInfo } from './ui/dashboard.js'
 import { drawBarChart } from './ui/chart.js'
@@ -15,6 +15,7 @@ let meshMeta = []
 let orbitControls = null
 let disposeRaycast = null
 let animFrameId = null
+let selectedIDs = new Set()
 
 // ── BUILD HTML SKELETON ──
 document.getElementById('app').innerHTML = `
@@ -58,7 +59,8 @@ document.getElementById('app').innerHTML = `
             <div class="viewer-controls-hint">
               DRAG · ORBITAR<br>
               RIGHT · MOVER<br>
-              SCROLL · ZOOM
+              SCROLL · ZOOM<br>
+              SHIFT · SELEC. MÚLTIPLA
             </div>
           </div>
           <div id="webgl-fallback" style="display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:var(--bg)">
@@ -200,13 +202,30 @@ async function buildAndShowApp(api, modelID, meta, elementData, quantities) {
     orbitControls.fitToModel(maxDim)
 
     if (disposeRaycast) disposeRaycast()
-    disposeRaycast = setupRaycasting(camera, meshMeta, renderer.domElement, (hitMesh) => {
-      selectMesh(hitMesh, meshMeta)
-      if (hitMesh) {
-        renderSelectionInfo(api, modelID, hitMesh.userData.expressID, hitMesh.userData.ifcType)
-      } else {
-        renderSelectionInfo(api, modelID, null, null)
+    disposeRaycast = setupRaycasting(camera, meshMeta, renderer.domElement, (hitMesh, shiftKey) => {
+      if (!hitMesh) {
+        // clique no vazio sem Shift → limpa seleção
+        if (!shiftKey) {
+          selectedIDs.clear()
+          applySelection(selectedIDs, meshMeta)
+          renderSelectionInfo(api, modelID, [], meshMeta)
+        }
+        return
       }
+
+      const id = hitMesh.userData.expressID
+      if (shiftKey) {
+        // Shift+clique → toggle
+        if (selectedIDs.has(id)) selectedIDs.delete(id)
+        else selectedIDs.add(id)
+      } else {
+        // clique simples → seleciona só este
+        selectedIDs.clear()
+        selectedIDs.add(id)
+      }
+
+      applySelection(selectedIDs, meshMeta)
+      renderSelectionInfo(api, modelID, [...selectedIDs], meshMeta)
     })
 
     if (animFrameId) cancelAnimationFrame(animFrameId)
@@ -251,6 +270,7 @@ function cleanup() {
     currentModelID = null
   }
   meshMeta = []
+  selectedIDs.clear()
 
   const vc = document.getElementById('viewer-container')
   if (vc) {

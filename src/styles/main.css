@@ -550,6 +550,15 @@ header {
   white-space: nowrap;
 }
 
+.sel-hint {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--muted);
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
 /* ── BOTTOM BAR ── */
 #bottom-bar {
   height: 180px;

@@ -43,7 +43,7 @@ export function createOrbitControls(camera, domElement) {
 
     if (state.isDragging) {
       state.theta -= dx * 0.005
-      state.phi = Math.max(0.05, Math.min(Math.PI - 0.05, state.phi + dy * 0.005))
+      state.phi = Math.max(0.05, Math.min(Math.PI - 0.05, state.phi - dy * 0.005))
     }
 
     if (state.isPanning) {
@@ -96,7 +96,7 @@ export function createOrbitControls(camera, domElement) {
       state.lastX = e.touches[0].clientX
       state.lastY = e.touches[0].clientY
       state.theta -= dx * 0.005
-      state.phi = Math.max(0.05, Math.min(Math.PI - 0.05, state.phi + dy * 0.005))
+      state.phi = Math.max(0.05, Math.min(Math.PI - 0.05, state.phi - dy * 0.005))
       updateCamera()
     }
     if (e.touches.length === 2) {
@@ -175,9 +175,9 @@ export function setupRaycasting(camera, meshMeta, domElement, onSelect) {
 
     if (intersects.length > 0) {
       const hit = intersects[0].object
-      onSelect(hit)
+      onSelect(hit, e.shiftKey)
     } else {
-      onSelect(null)
+      onSelect(null, e.shiftKey)
     }
   }
 
