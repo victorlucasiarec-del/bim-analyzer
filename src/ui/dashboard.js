@@ -116,34 +116,42 @@ function buildQuantitiesSection(quantities) {
   `
 }
 
+// Valores totais do modelo — nunca alterados por seleção de elementos.
+// Renderiza uma única vez por modelo; resetBottomBar() limpa para novo arquivo.
 export function renderBottomStats(elementData, quantities) {
+  const statsEl = document.getElementById('bottom-stats')
+  if (!statsEl || statsEl.children.length > 0) return   // já renderizado → ignora
+
   const total = elementData.total
   const types = elementData.merged.length
   const area  = quantities.hasData && quantities.slabArea > 0
     ? quantities.slabArea.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
     : '—'
 
+  statsEl.innerHTML = `
+    <div class="stats-block">
+      <div class="stats-num">${total.toLocaleString('pt-BR')}</div>
+      <div class="stats-label">Total Elementos</div>
+    </div>
+    <div class="stats-sep"></div>
+    <div class="stats-block">
+      <div class="stats-num">${types}</div>
+      <div class="stats-label">Tipos</div>
+    </div>
+    <div class="stats-sep"></div>
+    <div class="stats-block">
+      <div class="stats-num">${area}</div>
+      <div class="stats-label">Área Total m²</div>
+    </div>
+    <div class="stats-sep"></div>
+  `
+}
+
+export function resetBottomBar() {
   const statsEl = document.getElementById('bottom-stats')
-  if (statsEl) {
-    const areaStyle = area.length > 5 ? 'font-size:1.6rem' : ''
-    statsEl.innerHTML = `
-      <div class="stats-block">
-        <div class="stats-num">${total.toLocaleString('pt-BR')}</div>
-        <div class="stats-label">Total Elementos</div>
-      </div>
-      <div class="stats-sep"></div>
-      <div class="stats-block">
-        <div class="stats-num">${types}</div>
-        <div class="stats-label">Tipos</div>
-      </div>
-      <div class="stats-sep"></div>
-      <div class="stats-block">
-        <div class="stats-num" style="${areaStyle}">${area}</div>
-        <div class="stats-label">Área Total m²</div>
-      </div>
-      <div class="stats-sep"></div>
-    `
-  }
+  const chartEl = document.getElementById('chart-area')
+  if (statsEl) statsEl.innerHTML = ''
+  if (chartEl) chartEl.innerHTML = ''
 }
 
 export function renderViewerOverlay(total, ifcVersion) {

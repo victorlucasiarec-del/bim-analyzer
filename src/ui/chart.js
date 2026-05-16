@@ -1,5 +1,6 @@
 export function drawBarChart(container, elementData) {
   if (!container || !elementData?.merged?.length) return
+  if (container.children.length > 0) return   // já renderizado → ignora
 
   const { merged, total } = elementData
   const items = merged.slice(0, 6)

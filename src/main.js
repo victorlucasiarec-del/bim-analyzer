@@ -5,7 +5,7 @@ import { extractQuantities } from './ifc/quantities.js'
 import { createScene, createCamera, createRenderer, handleResize } from './viewer/scene.js'
 import { buildGeometry, applySelection, centerModel } from './viewer/geometry.js'
 import { createOrbitControls, setupRaycasting } from './viewer/controls.js'
-import { renderDashboard, renderBottomStats, renderViewerOverlay, renderSelectionInfo } from './ui/dashboard.js'
+import { renderDashboard, renderBottomStats, renderViewerOverlay, renderSelectionInfo, resetBottomBar } from './ui/dashboard.js'
 import { drawBarChart } from './ui/chart.js'
 import { generatePDF } from './ui/pdf.js'
 
@@ -271,6 +271,7 @@ function cleanup() {
   }
   meshMeta = []
   selectedIDs.clear()
+  resetBottomBar()
 
   const vc = document.getElementById('viewer-container')
   if (vc) {
