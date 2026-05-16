@@ -1,5 +1,17 @@
 const DOT_GRAYS = ['#0D0D0D','#4A4A4A','#6E6E6E','#9A9A9A','#B8B8B8','#D0D0D0','#E2E2E2','#CCCCCC','#BBBBBB','#AAAAAA']
 
+// Categorias de elementos BIM com seus nomes em PT
+const ELEMENT_CATEGORIES = [
+  { label: 'Estrutural',    names: ['Pilar','Viga','Laje','Fundação','Estaca','Perfil Estrutural','Chapa / Painel','Armadura','Tela Soldada','Cabo Protendido'] },
+  { label: 'Arquitetônico', names: ['Parede','Divisória','Janela','Porta','Cobertura','Escada','Lanço de Escada','Rampa','Lanço de Rampa','Fachada Cortina','Revestimento','Corrimão / Guarda-corpo','Espaço / Ambiente','Zona','Abertura','Elemento Genérico'] },
+  { label: 'Mobiliário',    names: ['Mobiliário','Mobiliário Sistêmico','Acessório','Fixador'] },
+  { label: 'Elétrica',      names: ['Quadro Elétrico','Elemento Elétrico','Luminária','Ponto Elétrico','Eletrocalha / Conexão','Eletrocalha','Cabo','Dispositivo de Proteção','Interruptor'] },
+  { label: 'Hidráulica',    names: ['Louça Sanitária','Tubulação','Conexão Hidráulica','Válvula','Ralo / Sifão'] },
+  { label: 'AVAC',          names: ['Duto','Conexão de Duto','Recuperador de Calor','Chiller','Serpentina','Compressor','Condensador','Ventilador','Filtro','Umidificador','Unidade de Ar-condicionado'] },
+  { label: 'Transporte',    names: ['Elevador / Transporte'] },
+  { label: 'Instalações',   names: ['Elemento de Distribuição','Segmento de Instalação','Terminal de Instalação','Conexão de Instalação','Controlador','Dispositivo de Movimentação','Reservatório / Tanque','Equipamento de Energia','Elemento de Fluxo'] },
+]
+
 function fmtBR(num, decimals = 2) {
   return Number(num).toLocaleString('pt-BR', {
     minimumFractionDigits: decimals,
@@ -49,31 +61,72 @@ function buildProjectSection(meta) {
   `
 }
 
+function elementRow(el, indexInMerged, maxCount) {
+  const pct   = Math.round((el.count / maxCount) * 100)
+  const color = DOT_GRAYS[indexInMerged % DOT_GRAYS.length]
+  return `
+    <div class="element-row">
+      <span class="element-dot" style="background:${color}"></span>
+      <span class="element-name">${el.name}</span>
+      <div class="element-bar-wrap">
+        <div class="element-bar-fill" style="width:${pct}%;background:${color}"></div>
+      </div>
+      <span class="element-count">${el.count}</span>
+    </div>
+  `
+}
+
 function buildElementsSection(elementData) {
-  const { merged, total } = elementData
+  const { merged } = elementData
   if (!merged.length) return ''
 
-  const maxCount = merged[0]?.count || 1
+  const maxCount  = merged[0]?.count || 1
+  const indexMap  = new Map(merged.map((el, i) => [el.name, i]))
+  const byName    = new Map(merged.map(el => [el.name, el]))
+  const categorized = new Set()
+  let html = ''
 
-  const rows = merged.map((el, i) => {
-    const pct = Math.round((el.count / maxCount) * 100)
-    const color = DOT_GRAYS[i % DOT_GRAYS.length]
-    return `
-      <div class="element-row">
-        <span class="element-dot" style="background:${color}"></span>
-        <span class="element-name">${el.name}</span>
-        <div class="element-bar-wrap">
-          <div class="element-bar-fill" style="width:${pct}%;background:${color}"></div>
-        </div>
-        <span class="element-count">${el.count}</span>
-      </div>
+  for (const cat of ELEMENT_CATEGORIES) {
+    const items = cat.names.map(n => byName.get(n)).filter(Boolean)
+    if (!items.length) continue
+
+    const catTotal = items.reduce((s, el) => s + el.count, 0)
+    items.forEach(el => categorized.add(el.name))
+
+    const rows = items.map(el => elementRow(el, indexMap.get(el.name), maxCount)).join('')
+    html += `
+      <details class="cat-group" open>
+        <summary class="cat-header">
+          <span class="cat-name">${cat.label}</span>
+          <span class="cat-count">${catTotal.toLocaleString('pt-BR')}</span>
+          <span class="cat-arrow">▾</span>
+        </summary>
+        <div class="cat-body">${rows}</div>
+      </details>
     `
-  }).join('')
+  }
+
+  // Outros: tipos não mapeados em nenhuma categoria
+  const outros = merged.filter(el => !categorized.has(el.name))
+  if (outros.length) {
+    const outrosTotal = outros.reduce((s, el) => s + el.count, 0)
+    const rows = outros.map(el => elementRow(el, indexMap.get(el.name), maxCount)).join('')
+    html += `
+      <details class="cat-group" open>
+        <summary class="cat-header">
+          <span class="cat-name">Outros</span>
+          <span class="cat-count">${outrosTotal.toLocaleString('pt-BR')}</span>
+          <span class="cat-arrow">▾</span>
+        </summary>
+        <div class="cat-body">${rows}</div>
+      </details>
+    `
+  }
 
   return `
     <div>
       <div class="section-label">Elementos</div>
-      ${rows}
+      ${html}
     </div>
   `
 }

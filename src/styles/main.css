@@ -559,6 +559,61 @@ header {
   letter-spacing: 0.03em;
 }
 
+/* ── CATEGORIAS RETRÁTEIS ── */
+.cat-group {
+  border-top: 1px solid var(--rule);
+  margin-top: 2px;
+}
+
+.cat-group:first-of-type {
+  border-top: none;
+  margin-top: 6px;
+}
+
+.cat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0 5px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+/* Remove seta nativa do <summary> em todos os browsers */
+.cat-header::-webkit-details-marker { display: none }
+.cat-header::marker { display: none }
+
+.cat-name {
+  font-family: var(--font-mono);
+  font-size: 0.54rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex: 1;
+}
+
+.cat-count {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--ink2);
+}
+
+.cat-arrow {
+  font-size: 0.48rem;
+  color: var(--muted);
+  transition: transform 0.18s ease;
+  line-height: 1;
+}
+
+details[open] > .cat-header > .cat-arrow {
+  transform: rotate(180deg);
+}
+
+.cat-body {
+  padding-bottom: 4px;
+}
+
 /* ── BOTTOM BAR ── */
 #bottom-bar {
   height: 180px;
@@ -633,9 +688,12 @@ header {
   font-family: var(--font-mono);
   font-size: 0.58rem;
   color: var(--muted);
-  width: 60px;
+  width: 72px;
   text-align: right;
   flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .bar-track {
