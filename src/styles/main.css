@@ -559,6 +559,83 @@ header {
   letter-spacing: 0.03em;
 }
 
+/* ── PAINEL DE PROPRIEDADES (estilo Revit) ── */
+.prop-back-btn {
+  background: none;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 0.60rem;
+  letter-spacing: 1px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  transition: color 0.15s;
+}
+.prop-back-btn:hover { color: var(--ink) }
+
+.prop-group {
+  margin-top: 2px;
+}
+
+.prop-group-label {
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 9px 0 6px;
+  border-top: 1px solid var(--rule);
+}
+
+/* Chave da propriedade — trunca nomes muito longos */
+.prop-key {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+}
+
+/* Valor de quantitativo (verde) */
+.prop-val-green {
+  color: var(--green) !important;
+  font-weight: 600;
+}
+
+/* Loading spinner pequeno */
+.prop-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+
+.spinner-sm {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--rule);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg) }
+}
+
+/* Mensagem sem Psets */
+.prop-empty {
+  font-family: var(--font-mono);
+  font-size: 0.60rem;
+  color: var(--muted);
+  line-height: 1.8;
+  padding: 4px 0;
+}
+
 /* ── CATEGORIAS RETRÁTEIS ── */
 .cat-group {
   border-top: 1px solid var(--rule);

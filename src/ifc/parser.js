@@ -279,21 +279,49 @@ export function parseMetadata(api, modelID, filename) {
   return meta
 }
 
+// Extrai o nome de família de uma entidade IFC
+// Revit exporta: 'Família:Tipo:ID'  → retorna 'Família'
+function extractFamilyName(entity) {
+  try {
+    const n = entity?.Name
+    const raw = (n?.value !== undefined ? String(n.value) : String(n ?? ''))
+    const family = raw.split(':')[0].trim()
+    return family || null
+  } catch { return null }
+}
+
 export function countElements(api, modelID) {
-  // Iterar TODAS as constantes IFC exportadas pelo web-ifc
   const rawCounts = {}
 
   for (const [key, typeConst] of Object.entries(WebIFC)) {
     if (!key.startsWith('IFC')) continue
     if (typeof typeConst !== 'number') continue
     if (SKIP_TYPES.has(key)) continue
-    // Definições de tipo (IfcColumnType, IfcBeamType, etc.) — não são instâncias físicas
     if (key.endsWith('TYPE')) continue
-    // Definições de perfil de seção (IfcCircleProfileDef, etc.)
     if (key.endsWith('PROFILEDEF')) continue
-    // Pares de nome/valor de propriedade
     if (key.startsWith('IFCPROPERTY') && key !== 'IFCPROPERTYSET') continue
     if (key.startsWith('IFCREL') && !PT_NAMES[key]) continue
+
+    // ── Smart naming: lê o campo Name do IFC e agrupa por família ────────
+    // Cobre IFCBUILDINGELEMENTPROXY e outros tipos sem nome amigável fixo
+    const needsSmartName = key === 'IFCBUILDINGELEMENTPROXY'
+
+    if (needsSmartName) {
+      try {
+        const ids = api.GetLineIDsWithType(modelID, typeConst)
+        for (let j = 0; j < ids.size(); j++) {
+          try {
+            const entity = api.GetLine(modelID, ids.get(j), true)
+            const family = extractFamilyName(entity) || 'Elemento Genérico'
+            const pkey   = `PROXY:${family}`
+            rawCounts[pkey] = (rawCounts[pkey] || 0) + 1
+          } catch {
+            rawCounts['IFCBUILDINGELEMENTPROXY'] = (rawCounts['IFCBUILDINGELEMENTPROXY'] || 0) + 1
+          }
+        }
+      } catch {}
+      continue
+    }
 
     try {
       const ids = api.GetLineIDsWithType(modelID, typeConst)
@@ -302,12 +330,15 @@ export function countElements(api, modelID) {
     } catch {}
   }
 
-  // Agrupar tipos com o mesmo nome em português
-  const nameMap = {}   // nome → count acumulado
-  const nameKey  = {}  // nome → primeira chave (para referência)
+  // Agrupar por nome em português (ou nome extraído para proxies)
+  const nameMap = {}
+  const nameKey  = {}
 
   for (const [key, count] of Object.entries(rawCounts)) {
-    const name = PT_NAMES[key] || formatUnknown(key)
+    const name = key.startsWith('PROXY:')
+      ? key.slice(6)                      // usa o nome de família diretamente
+      : (PT_NAMES[key] || formatUnknown(key))
+
     if (nameMap[name] === undefined) {
       nameMap[name] = 0
       nameKey[name] = key
@@ -315,13 +346,11 @@ export function countElements(api, modelID) {
     nameMap[name] += count
   }
 
-  // Montar array final ordenado por contagem
   const merged = Object.entries(nameMap)
     .map(([name, count]) => ({ key: nameKey[name], name, count }))
     .sort((a, b) => b.count - a.count)
 
   const total = merged.reduce((sum, el) => sum + el.count, 0)
-
   return { merged, total }
 }
 

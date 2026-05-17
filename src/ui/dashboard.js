@@ -148,11 +148,13 @@ function buildQuantitiesSection(quantities) {
   }
 
   const rows = []
-  if (quantities.columnVolume > 0) rows.push(['Volume Pilares', `${fmtBR(quantities.columnVolume)} m³`])
-  if (quantities.beamVolume   > 0) rows.push(['Volume Vigas',   `${fmtBR(quantities.beamVolume)} m³`])
-  if (quantities.slabArea     > 0) rows.push(['Área Lajes',     `${fmtBR(quantities.slabArea)} m²`])
-  if (quantities.wallArea     > 0) rows.push(['Área Paredes',   `${fmtBR(quantities.wallArea)} m²`])
-  if (quantities.beamLength   > 0) rows.push(['Compr. Vigas',   `${fmtBR(quantities.beamLength)} m`])
+  if (quantities.columnVolume > 0) rows.push(['Volume Pilares',   `${fmtBR(quantities.columnVolume)} m³`])
+  if (quantities.beamVolume   > 0) rows.push(['Volume Vigas',     `${fmtBR(quantities.beamVolume)} m³`])
+  if (quantities.slabArea     > 0) rows.push(['Área Lajes',       `${fmtBR(quantities.slabArea)} m²`])
+  if (quantities.wallArea     > 0) rows.push(['Área Paredes',     `${fmtBR(quantities.wallArea)} m²`])
+  if (quantities.plateArea    > 0) rows.push(['Área Chapas',      `${fmtBR(quantities.plateArea)} m²`])
+  if (quantities.beamLength   > 0) rows.push(['Compr. Vigas',     `${fmtBR(quantities.beamLength)} m`])
+  if (quantities.memberLength > 0) rows.push(['Compr. Perfis',    `${fmtBR(quantities.memberLength)} m`])
 
   const rowsHtml = rows.map(([label, val]) => `
     <div class="quant-row">
@@ -217,8 +219,9 @@ export function renderViewerOverlay(total, ifcVersion) {
   }
 }
 
-// expressIDs: number[]  |  meshMeta: [{expressID, ifcType, mesh}]
-export function renderSelectionInfo(api, modelID, expressIDs, meshMeta) {
+// expressIDs: number[]
+// entityData (opcional, para elemento único): { globalId, displayType }
+export function renderSelectionInfo(expressIDs, entityData = null) {
   const panel = document.getElementById('selection-panel')
   if (!panel) return
 
@@ -244,24 +247,8 @@ export function renderSelectionInfo(api, modelID, expressIDs, meshMeta) {
   }
 
   // ── Elemento único ───────────────────────────────────────────────
-  const expressID = expressIDs[0]
-  const meta      = meshMeta?.find(m => m.expressID === expressID)
-  const ifcType   = meta?.ifcType
-
-  let globalId = '—'
-  try {
-    const entity = api.GetLine(modelID, expressID, true)
-    if (entity) globalId = entity.GlobalId?.value || '—'
-  } catch {}
-
-  // type name: try constructor name, then numeric lookup, then raw
-  let displayType = `IFC #${ifcType}`
-  try {
-    const entity = api.GetLine(modelID, expressID, true)
-    if (entity?.constructor?.name && entity.constructor.name !== 'Object') {
-      displayType = entity.constructor.name
-    }
-  } catch {}
+  const expressID  = expressIDs[0]
+  const { globalId = '—', displayType = `#${expressID}` } = entityData || {}
 
   panel.style.display = 'block'
   panel.innerHTML = `

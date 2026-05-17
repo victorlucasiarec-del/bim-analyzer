@@ -4,7 +4,10 @@ import {
   IFCQUANTITYVOLUME,
   IFCQUANTITYAREA,
   IFCQUANTITYLENGTH,
-  IFCCOLUMN, IFCBEAM, IFCSLAB, IFCWALL, IFCWALLSTANDARDCASE
+  IFCCOLUMN, IFCBEAM, IFCSLAB, IFCWALL, IFCWALLSTANDARDCASE,
+  IFCPLATE, IFCPLATESTANDARDCASE,
+  IFCMEMBER, IFCMEMBERSTANDARDCASE,
+  IFCBUILDINGELEMENTPROXY,
 } from 'web-ifc'
 
 function safeGetLine(api, modelID, id) {
@@ -23,21 +26,28 @@ function extractVal(q) {
 export async function extractQuantities(api, modelID) {
   const result = {
     columnVolume: 0,
-    beamVolume: 0,
-    slabArea: 0,
-    wallArea: 0,
-    beamLength: 0,
-    hasData: false,
+    beamVolume:   0,
+    slabArea:     0,
+    wallArea:     0,
+    beamLength:   0,
+    plateArea:    0,
+    memberLength: 0,
+    hasData:      false,
   }
 
   const elementToType = new Map()
 
   const targetTypes = [
-    { const: IFCCOLUMN,           key: 'column' },
-    { const: IFCBEAM,             key: 'beam' },
-    { const: IFCSLAB,             key: 'slab' },
-    { const: IFCWALL,             key: 'wall' },
-    { const: IFCWALLSTANDARDCASE, key: 'wall' },
+    { const: IFCCOLUMN,              key: 'column' },
+    { const: IFCBEAM,                key: 'beam'   },
+    { const: IFCSLAB,                key: 'slab'   },
+    { const: IFCWALL,                key: 'wall'   },
+    { const: IFCWALLSTANDARDCASE,    key: 'wall'   },
+    { const: IFCPLATE,               key: 'plate'  },
+    { const: IFCPLATESTANDARDCASE,   key: 'plate'  },
+    { const: IFCMEMBER,              key: 'member' },
+    { const: IFCMEMBERSTANDARDCASE,  key: 'member' },
+    { const: IFCBUILDINGELEMENTPROXY,key: 'proxy'  },
   ]
 
   for (const { const: tc, key } of targetTypes) {
@@ -85,29 +95,27 @@ export async function extractQuantities(api, modelID) {
           const qType = q.type
 
           if (elemType === 'column' && qType === IFCQUANTITYVOLUME) {
-            const v = extractVal(q)
-            if (v) { result.columnVolume += v; result.hasData = true }
+            const v = extractVal(q); if (v) { result.columnVolume += v; result.hasData = true }
           }
-
           if (elemType === 'beam') {
             if (qType === IFCQUANTITYVOLUME) {
-              const v = extractVal(q)
-              if (v) { result.beamVolume += v; result.hasData = true }
+              const v = extractVal(q); if (v) { result.beamVolume += v; result.hasData = true }
             }
             if (qType === IFCQUANTITYLENGTH && name.includes('length')) {
-              const v = extractVal(q)
-              if (v) { result.beamLength += v; result.hasData = true }
+              const v = extractVal(q); if (v) { result.beamLength += v; result.hasData = true }
             }
           }
-
           if (elemType === 'slab' && qType === IFCQUANTITYAREA) {
-            const v = extractVal(q)
-            if (v) { result.slabArea += v; result.hasData = true }
+            const v = extractVal(q); if (v) { result.slabArea += v; result.hasData = true }
           }
-
           if (elemType === 'wall' && qType === IFCQUANTITYAREA) {
-            const v = extractVal(q)
-            if (v) { result.wallArea += v; result.hasData = true }
+            const v = extractVal(q); if (v) { result.wallArea += v; result.hasData = true }
+          }
+          if (elemType === 'plate' && qType === IFCQUANTITYAREA) {
+            const v = extractVal(q); if (v) { result.plateArea += v; result.hasData = true }
+          }
+          if (elemType === 'member' && qType === IFCQUANTITYLENGTH) {
+            const v = extractVal(q); if (v) { result.memberLength += v; result.hasData = true }
           }
         }
       }

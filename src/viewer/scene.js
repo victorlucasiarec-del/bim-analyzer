@@ -2,34 +2,41 @@ import * as THREE from 'three'
 
 export function createScene() {
   const scene = new THREE.Scene()
-  scene.background = new THREE.Color(0xECEAE5)
-  scene.fog = new THREE.FogExp2(0xECEAE5, 0.006)
+  scene.background = new THREE.Color(0xD8D4CE)   // cinza-médio (melhor contraste)
+  scene.fog = new THREE.FogExp2(0xD8D4CE, 0.004)
 
-  const ambient = new THREE.AmbientLight(0xffffff, 0.7)
+  // Luz ambiente — reduzida para as cores aparecerem com mais contraste
+  const ambient = new THREE.AmbientLight(0xffffff, 0.55)
   scene.add(ambient)
 
-  const sun = new THREE.DirectionalLight(0xffffff, 1.0)
-  sun.position.set(50, 80, 50)
+  // Sol principal — levemente aquecido
+  const sun = new THREE.DirectionalLight(0xFFF8F0, 1.2)
+  sun.position.set(60, 100, 50)
   sun.castShadow = true
-  sun.shadow.mapSize.width = 2048
+  sun.shadow.mapSize.width  = 2048
   sun.shadow.mapSize.height = 2048
-  sun.shadow.camera.near = 0.5
-  sun.shadow.camera.far = 500
-  sun.shadow.camera.left = -100
-  sun.shadow.camera.right = 100
-  sun.shadow.camera.top = 100
-  sun.shadow.camera.bottom = -100
+  sun.shadow.camera.near   = 0.5
+  sun.shadow.camera.far    = 800
+  sun.shadow.camera.left   = -200
+  sun.shadow.camera.right  =  200
+  sun.shadow.camera.top    =  200
+  sun.shadow.camera.bottom = -200
   scene.add(sun)
 
-  const fill = new THREE.DirectionalLight(0xE8E5DF, 0.3)
-  fill.position.set(-20, -30, -20)
+  // Luz de preenchimento fria (lado oposto) — dá profundidade
+  const fill = new THREE.DirectionalLight(0xD0E8FF, 0.4)
+  fill.position.set(-40, -20, -60)
   scene.add(fill)
+
+  // Luz de chão (rimlight suave) — evita sombras totalmente negras
+  const ground = new THREE.HemisphereLight(0xffffff, 0x888870, 0.25)
+  scene.add(ground)
 
   return scene
 }
 
 export function createCamera(width, height) {
-  const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000)
+  const camera = new THREE.PerspectiveCamera(45, width / height, 0.05, 8000)
   camera.position.set(30, 25, 40)
   camera.lookAt(0, 0, 0)
   return camera
