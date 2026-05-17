@@ -573,8 +573,8 @@ header {
 .cat-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 0 5px;
+  gap: 10px;
+  padding: 11px 0 8px;
   cursor: pointer;
   list-style: none;
   user-select: none;
@@ -586,21 +586,21 @@ header {
 
 .cat-name {
   font-family: var(--font-mono);
-  font-size: 0.54rem;
-  letter-spacing: 1.5px;
+  font-size: 0.68rem;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink2);
   flex: 1;
 }
 
 .cat-count {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
-  color: var(--ink2);
+  font-size: 0.72rem;
+  color: var(--ink);
 }
 
 .cat-arrow {
-  font-size: 0.48rem;
+  font-size: 0.6rem;
   color: var(--muted);
   transition: transform 0.18s ease;
   line-height: 1;
